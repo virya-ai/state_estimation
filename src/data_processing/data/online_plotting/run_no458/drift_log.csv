@@ -1,0 +1,1 @@
+timestamp,gt_x,gt_y,ekf_x,ekf_y,gt_theta,ekf_theta,drift_x,drift_y,drift_abs,drift_theta,ekf_vel_x,ekf_vel_y,gt_vel_x,gt_vel_y

@@ -1,0 +1,20 @@
+<launch>
+
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_node" output="screen">
+        <rosparam command="load" file="$(find dead_reckoning)/config/ekf_localization_local.yaml" />
+        <remap from="/odometry/filtered" to="/odometry/filtered" />
+    </node>
+    <node pkg="dead_reckoning" type="imu_mag_converter.py" name="imu_mag_convertor" output="screen">
+    </node> 
+    <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_node" output="screen">
+         <param name="use_magnetic_field_msg" value="false" />
+    </node>
+    <node pkg="data_processing" type="imu_logger.py" name="imu_logger" output="screen">
+    </node>
+    <node pkg="dead_reckoning" type="bicycle_node" name="bicycle_node" output="screen">
+    </node>
+    <node pkg="data_processing" type="gt_extractor" name="gt_extractor" output="screen">
+    </node>
+    
+
+</launch>

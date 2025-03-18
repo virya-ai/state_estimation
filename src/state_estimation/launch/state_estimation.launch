@@ -1,0 +1,18 @@
+<launch>
+    <param name="use_imu_heading" value="true"/>
+
+    <!-- <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" clear_params="true">
+        <rosparam command="load" file="$(find state_estimation)/config/navsat.yaml" />
+        <remap from="gps/fix" to="/reach/fix"/>
+    </node> -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="static_tf_map_to_odom" output="screen" args="0 0 0 0 0 0 map odom" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="static_tf_imu_to_gps" output="screen" args="0 0 0 0 0 0 base_link imu_link" />
+    
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_node2" output="screen">
+        <rosparam command="load" file="$(find state_estimation)/config/ekf_localization_local2.yaml" />
+        <!-- <remap from="/odometry/filtered" to="/odometry/filtered_temp" /> -->
+    </node>
+    <node pkg="state_estimation" type="lla_to_odom.py" name="lla_to_odom" output="screen" />
+    <node pkg="state_estimation" type="gps_heading.py" name="gps_heading" output="screen" />
+
+</launch>
