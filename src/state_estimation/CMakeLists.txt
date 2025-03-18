@@ -67,6 +67,7 @@ install(PROGRAMS
   scripts/lla_to_odom.py
   scripts/utils.py
   scripts/gps_heading.py
+  scripts/pubpose.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

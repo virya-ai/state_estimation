@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     repub = nh.advertise<geometry_msgs::PoseStamped>("/ndt_pose1", 10);
 
     // Subscribe to the odometry topic
-    ros::Subscriber sub = nh.subscribe("/odom", 10, callback);
+    ros::Subscriber sub = nh.subscribe("/odometry/filtered", 10, callback);
 
     // Keep the node running
     ros::spin();
