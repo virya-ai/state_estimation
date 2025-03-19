@@ -30,6 +30,7 @@ tf_broadcaster = None
 # Store past coordinates
 x_coords = deque(maxlen=5)
 y_coords = deque(maxlen=5)
+times = deque(maxlen=5)
 
 # ROS Publishers
 reset_pub = None  # Will be initialized in listener()
@@ -47,30 +48,66 @@ def localization_callback(data):
     global heading_quat
     orientation = data.pose.pose.orientation
     heading_quat = [orientation.x, orientation.y, orientation.z, orientation.w]
-    print("Heading callback: ", heading_quat)
+    # print("Heading callback: ", heading_quat)
+
+def smoothen_traj(x, y):
+    global x_coords, y_coords, times
+
+    print("times len: ", times)
+
+    vel_x = (x_coords[-1] - x_coords[-2]) / (times[-1] - times[-2])
+    vel_y = (y_coords[-1] - y_coords[-2]) / (times[-1] - times[-2])
+
+    prev_x = x_coords[-1]
+    prev_y = y_coords[-1]
+    prev_time = times[-1]
+
+    dx = x - prev_x
+    dy = y - prev_y
+    dt = times[-1] - prev_time
+
+    predict_x = prev_x + vel_x * dt
+    predict_y = prev_y + vel_y * dt
+
+    print("vel_x: ", vel_x) 
+    print("vel_y: ", vel_y)
+    if np.sqrt((predict_x - x)**2 + (predict_y - y)**2) < 0.2 or vel_x == 0 or vel_y == 0:
+        x_coords.append(x)
+        y_coords.append(y)
+        times.append(rospy.Time.now().to_sec())
+    else:
+        x_coords.append(predict_x)
+        y_coords.append(predict_y)
+        times.append(rospy.Time.now().to_sec())
+
 
 def gnss_callback(data):
     """Callback function for GNSS data to convert GPS to ENU and publish odometry + TF."""
     global gnss_odom_msg, fix_status, x_coords, y_coords, reset_pub, imu_quat, tf_broadcaster, heading_quat
-    global gnss_pub
+    global gnss_pub, times 
     # Convert GPS to ENU
     lat, lon, alt = data.latitude, data.longitude, data.altitude
     fix_status = data.status.status
     coords = gps_converter.geo2enu(lat, lon, alt)
-
     # Store coordinates
-    x_coords.append(coords[0].item())
-    y_coords.append(coords[1].item())
+    if len(x_coords) < 5:
+        x_coords.append(coords[0].item())
+        y_coords.append(coords[1].item())
+        times.append(rospy.Time.now().to_sec())
+    else:
+        smoothen_traj(coords[0].item(), coords[1].item())
+
+
 
     # Update odometry message
     gnss_odom_msg = Odometry()
     gnss_odom_msg.header.stamp = rospy.Time.now()
     gnss_odom_msg.header.frame_id = "odom"
     # gnss_odom_msg.child_frame_id = "base_link"
-    gnss_odom_msg.pose.pose.position.x = coords[0].item()
-    gnss_odom_msg.pose.pose.position.y = coords[1].item()
+    gnss_odom_msg.pose.pose.position.x = x_coords[-1]
+    gnss_odom_msg.pose.pose.position.y = y_coords[-1]
     gnss_odom_msg.pose.pose.position.z = 0
-    print("Orientation: ", heading_quat)
+    # print("Orientation: ", head   ing_quat)
     gnss_odom_msg.pose.pose.orientation.x = heading_quat[0]
     gnss_odom_msg.pose.pose.orientation.y = heading_quat[1]
     gnss_odom_msg.pose.pose.orientation.z = heading_quat[2]

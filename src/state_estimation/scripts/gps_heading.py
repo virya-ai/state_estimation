@@ -70,8 +70,8 @@ class HeadingEstimator:
         delta_y = current_y - self.prev_y
         if np.sqrt(delta_x**2 + delta_y**2) > 0.2:
             # Calculate the difference in latitude and longitude   
-            print("delta_x: ", delta_x)
-            print("delta_y: ", delta_y)
+            # print("delta_x: ", delta_x)
+            # print("delta_y: ", delta_y)
             self.x_coords.append(current_x)
             self.y_coords.append(current_y)
             self.times.append(rospy.Time.now().to_sec())
